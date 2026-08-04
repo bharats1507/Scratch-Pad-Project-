@@ -6,9 +6,9 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = 'gemini-2.0-flash';
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const API_KEY = process.env.GROQ_API_KEY;
+const MODEL = 'llama-3.3-70b-versatile';
+const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 app.post('/api/generate', async (req, res) => {
   const { prompt } = req.body || {};
@@ -18,7 +18,7 @@ app.post('/api/generate', async (req, res) => {
   }
 
   if (!API_KEY) {
-    return res.status(500).json({ error: 'Server is missing its API key. Set GEMINI_API_KEY in your environment.' });
+    return res.status(500).json({ error: 'Server is missing its API key. Set GROQ_API_KEY in your environment.' });
   }
 
   try {
@@ -26,12 +26,11 @@ app.post('/api/generate', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': API_KEY
+        'Authorization': `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        contents: [
-          { parts: [{ text: prompt }] }
-        ]
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }]
       })
     });
 
@@ -42,10 +41,7 @@ app.post('/api/generate', async (req, res) => {
     }
 
     const data = await response.json();
-    const text = (data.candidates?.[0]?.content?.parts || [])
-      .map(part => part.text || '')
-      .join('\n')
-      .trim();
+    const text = (data.choices?.[0]?.message?.content || '').trim();
 
     if (!text) {
       return res.status(502).json({ error: 'The AI service returned an empty response.' });
