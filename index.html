@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scratchpad — AI Study Utility</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#2B2A24;
+    --ink-dim:#7A7364;
+    --bg:#F5F1E8;
+    --bg-panel:#FFFFFF;
+    --bg-panel-2:#EFE9DA;
+    --rule:#DED5C0;
+    --amber:#C97B2E;
+    --amber-dim:#B08A4A;
+    --teal:#3F7D6E;
+    --red:#B23A4E;
+    --radius:3px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+
+  .wrap{
+    max-width:980px;
+    margin:0 auto;
+    padding:36px 24px 60px;
+  }
+
+  /* -- Header -------------------------------------------------- */
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:18px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .brand{
+    font-family:'Newsreader',serif;
+    font-weight:600;
+    font-size:30px;
+    letter-spacing:0.2px;
+  }
+  .brand span{ color:var(--amber); font-style:italic; font-weight:400;}
+  .tagline{
+    font-size:12.5px;
+    color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+
+  /* -- Layout: binder tabs + notebook page ---------------------- */
+  .desk{
+    display:grid;
+    grid-template-columns:190px 1fr;
+    gap:0;
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    overflow:hidden;
+    min-height:560px;
+  }
+  @media (max-width:720px){
+    .desk{ grid-template-columns:1fr; }
+    .tabs{ flex-direction:row !important; overflow-x:auto; border-right:none !important; border-bottom:1px solid var(--rule); }
+    .tab{ white-space:nowrap; }
+  }
+
+  .tabs{
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid var(--rule);
+    background:var(--bg-panel-2);
+  }
+  .tab{
+    text-align:left;
+    background:none;
+    border:none;
+    color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.03em;
+    padding:16px 18px;
+    cursor:pointer;
+    border-bottom:1px solid var(--rule);
+    border-left:3px solid transparent;
+    transition:background .15s, color .15s;
+    line-height:1.4;
+  }
+  .tab:hover{ background:rgba(232,163,61,0.06); color:var(--ink); }
+  .tab.active{
+    color:var(--amber);
+    background:var(--bg-panel);
+    border-left:3px solid var(--amber);
+  }
+  .tab small{ display:block; color:var(--ink-dim); font-size:10.5px; margin-top:3px; font-family:'Inter',sans-serif;}
+  .tab.active small{ color:var(--ink-dim); }
+
+  /* -- Main page -------------------------------------------------- */
+  .page{
+    padding:26px 30px 30px;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 27px,
+        var(--rule) 28px
+      );
+    background-position: 0 2px;
+  }
+  .page-title{
+    font-family:'Newsreader',serif;
+    font-size:20px;
+    margin:0 0 4px;
+  }
+  .page-desc{
+    font-size:13px;
+    color:var(--ink-dim);
+    margin:0 0 20px;
+    max-width:560px;
+    line-height:1.5;
+  }
+
+  label.field-label{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--amber-dim);
+    margin-bottom:6px;
+  }
+
+  textarea, input[type=text]{
+    width:100%;
+    background:rgba(0,0,0,0.03);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:12px 14px;
+    resize:vertical;
+    line-height:1.55;
+  }
+  textarea:focus, input[type=text]:focus{
+    outline:none;
+    border-color:var(--amber-dim);
+    box-shadow:0 0 0 3px rgba(232,163,61,0.12);
+  }
+  textarea{ min-height:150px; margin-bottom:16px; }
+  input[type=text]{ margin-bottom:16px; }
+
+  .row2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
+
+  .actions{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:6px;
+  }
+
+  button.run{
+    background:var(--amber);
+    color:#FFFDF8;
+    border:none;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    padding:11px 22px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    transition:background .15s, transform .1s;
+  }
+  button.run:hover{ background:#B36A22; }
+  button.run:active{ transform:translateY(1px); }
+  button.run:disabled{
+    background:var(--amber-dim);
+    color:#FFFDF8CC;
+    cursor:not-allowed;
+  }
+
+  .status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+  .status.err{ color:var(--red); }
+
+  .error-box{
+    display:none;
+    margin-top:4px;
+    margin-bottom:16px;
+    padding:10px 14px;
+    background:rgba(209,73,91,0.1);
+    border:1px solid var(--red);
+    border-radius:var(--radius);
+    color:#F0B4BC;
+    font-size:13px;
+    line-height:1.5;
+  }
+
+  .output-wrap{
+    margin-top:22px;
+    border-top:1px dashed var(--rule);
+    padding-top:20px;
+    display:none;
+  }
+  .output-label-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .output-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--teal);
+    margin-bottom:0;
+  }
+  .raw-toggle{
+    background:none;
+    border:1px solid var(--rule);
+    color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    padding:5px 10px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .raw-toggle:hover{ color:var(--ink); border-color:var(--amber-dim); }
+  .raw-toggle.active{ color:var(--amber); border-color:var(--amber-dim); background:rgba(201,123,46,0.08); }
+
+  .output-raw{
+    display:none;
+    background:rgba(0,0,0,0.03);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.6;
+    color:var(--ink-dim);
+    white-space:pre-wrap;
+    word-break:break-word;
+    margin:0;
+  }
+  .output{
+    background:rgba(0,0,0,0.025);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    font-size:14.5px;
+    line-height:1.7;
+    white-space:pre-wrap;
+  }
+  .output h1,.output h2,.output h3{
+    font-family:'Newsreader',serif;
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  .output h1{ font-size:19px; }
+  .output h2{ font-size:16.5px; margin-top:16px;}
+  .output h3{ font-size:14.5px; margin-top:14px;}
+  .output p{ margin:0 0 10px; }
+  .output ul,.output ol{ margin:0 0 10px; padding-left:22px; }
+  .output li{ margin-bottom:4px; }
+  .output strong{ color:var(--amber); font-weight:600; }
+  .output code{
+    font-family:'IBM Plex Mono',monospace;
+    background:rgba(232,163,61,0.1);
+    padding:1px 5px;
+    border-radius:2px;
+    font-size:13px;
+  }
+
+  .skeleton{
+    display:none;
+    margin-top:22px;
+    border-top:1px dashed var(--rule);
+    padding-top:20px;
+  }
+  .skeleton .bar{
+    height:12px;
+    background:linear-gradient(90deg, var(--bg-panel-2) 25%, var(--rule) 50%, var(--bg-panel-2) 75%);
+    background-size:200% 100%;
+    animation:shimmer 1.3s infinite;
+    border-radius:2px;
+    margin-bottom:10px;
+  }
+  .skeleton .bar:nth-child(1){ width:40%; }
+  .skeleton .bar:nth-child(2){ width:92%; }
+  .skeleton .bar:nth-child(3){ width:85%; }
+  .skeleton .bar:nth-child(4){ width:70%; }
+  @keyframes shimmer{
+    0%{ background-position:200% 0; }
+    100%{ background-position:-200% 0; }
+  }
+
+  footer{
+    margin-top:18px;
+    font-size:11.5px;
+    color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand">Scratchpad<span>.</span></div>
+      <div class="tagline">a small AI toolkit for actual coursework</div>
+    </div>
+  </header>
+
+  <div class="desk">
+    <div class="tabs" id="tabs"></div>
+
+    <div class="page">
+
+      <div id="tool-header">
+        <div class="page-title" id="toolTitle"></div>
+        <p class="page-desc" id="toolDesc"></p>
+      </div>
+
+      <div id="formArea"></div>
+
+      <div class="actions">
+        <button class="run" id="runBtn">Generate</button>
+        <span class="status" id="statusText"></span>
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <div class="skeleton" id="skeleton">
+        <div class="output-label">working</div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+
+      <div class="output-wrap" id="outputWrap">
+        <div class="output-label-row">
+          <div class="output-label">Result</div>
+          <button class="raw-toggle" id="rawToggle" type="button">View raw</button>
+        </div>
+        <div class="output" id="output"></div>
+        <pre class="output-raw" id="outputRaw"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+
+<script>
+const TOOLS = {
+  summarize: {
+    label: "Summarize Notes",
+    hint: "condense raw notes",
+    title: "Note Summarizer",
+    desc: "Paste rough notes or reading material. Get back a clean, structured summary organized by key point.",
+    fields: [
+      { id: "content", type: "textarea", label: "Notes to summarize", placeholder: "Paste your notes, chapter excerpt, or lecture transcript here..." }
+    ],
+    buildPrompt: (v) => `You are a study assistant helping a student summarize their notes.
+
+Summarize the following notes into a clear, well-organized study summary. Use short headings and bullet points. Keep the key facts, definitions, and relationships intact — do not add information that isn't in the source. Keep it concise: aim for roughly a third of the original length.
+
+Format your response in simple markdown (## headings, - bullets, **bold** for key terms). Do not include any preamble like "Here is a summary" — start directly with the content.
+
+NOTES:
+"""
+${v.content}
+"""`
+  },
+  quiz: {
+    label: "Generate Quiz",
+    hint: "notes → practice questions",
+    title: "Quiz Generator",
+    desc: "Turn a set of notes into a short practice quiz — good for self-testing before an exam.",
+    fields: [
+      { id: "content", type: "textarea", label: "Notes to quiz yourself on", placeholder: "Paste the notes or topic material you want to be quizzed on..." },
+      { id: "count", type: "text", label: "Number of questions (default 5)", placeholder: "5" }
+    ],
+    buildPrompt: (v) => `You are a study assistant creating a practice quiz for a student.
+
+Based on the notes below, write ${v.count && v.count.trim() ? v.count.trim() : "5"} quiz questions that test understanding of the material (mix of short-answer and multiple-choice is fine). After all questions, include an "Answer Key" section with the correct answers and a one-line explanation for each.
+
+Format in simple markdown (## headings, numbered list for questions, **Answer Key** section at the end). Do not include any preamble — start directly with the quiz.
+
+NOTES:
+"""
+${v.content}
+"""`
+  },
+  improve: {
+    label: "Improve Answer",
+    hint: "strengthen a weak draft",
+    title: "Answer Improver",
+    desc: "Give a draft answer to a question or prompt. Get a stronger rewritten version plus notes on what changed and why.",
+    fields: [
+      { id: "question", type: "textarea", label: "The question or prompt", placeholder: "What was the original question or assignment prompt?" },
+      { id: "content", type: "textarea", label: "Your draft answer", placeholder: "Paste your current answer here..." }
+    ],
+    buildPrompt: (v) => `You are a study assistant helping a student improve a draft answer.
+
+QUESTION / PROMPT:
+"""
+${v.question}
+"""
+
+STUDENT'S DRAFT ANSWER:
+"""
+${v.content}
+"""
+
+First, write an improved version of the answer that is clearer, more complete, and better structured, while staying honest to the student's original ideas. Then add a short "What Changed" section (2-4 bullet points) explaining the key improvements made.
+
+Format in simple markdown with a "## Improved Answer" heading followed by the rewrite, then a "## What Changed" heading with bullets. Do not include any other preamble.`
+  },
+  explain: {
+    label: "Explain Concept",
+    hint: "plain-language walkthrough",
+    title: "Concept Explainer",
+    desc: "Name a topic or concept you're stuck on. Get a plain-language explanation pitched at your level, with a short example.",
+    fields: [
+      { id: "content", type: "text", label: "Concept or topic", placeholder: "e.g. Le Chatelier's principle, recursion, supply and demand..." },
+      { id: "level", type: "text", label: "Your level (optional)", placeholder: "e.g. high school, intro college course" }
+    ],
+    buildPrompt: (v) => `You are a study assistant explaining a concept to a student${v.level && v.level.trim() ? ` at the level of: ${v.level.trim()}` : ""}.
+
+Explain the following concept clearly and simply:
+"""
+${v.content}
+"""
+
+Structure your response as:
+## What it is
+A plain-language explanation, 2-4 sentences.
+## Why it matters / how it works
+A short breakdown of the mechanism or reasoning.
+## Example
+One concrete, worked example.
+
+Avoid unnecessary jargon; define any term you must use. Do not include any other preamble.`
+  }
+};
+
+let activeTool = "summarize";
+const values = {}; // per-tool field values persist while switching tabs
+
+function initValues(){
+  Object.keys(TOOLS).forEach(k=>{
+    values[k] = {};
+    TOOLS[k].fields.forEach(f=> values[k][f.id] = "");
+  });
+}
+initValues();
+
+const tabsEl = document.getElementById('tabs');
+const toolTitle = document.getElementById('toolTitle');
+const toolDesc = document.getElementById('toolDesc');
+const formArea = document.getElementById('formArea');
+const runBtn = document.getElementById('runBtn');
+const statusText = document.getElementById('statusText');
+const errorBox = document.getElementById('errorBox');
+const outputWrap = document.getElementById('outputWrap');
+const outputEl = document.getElementById('output');
+const outputRawEl = document.getElementById('outputRaw');
+const rawToggle = document.getElementById('rawToggle');
+const skeleton = document.getElementById('skeleton');
+
+let lastRawText = '';
+let showingRaw = false;
+
+function setRawView(on){
+  showingRaw = on;
+  outputEl.style.display = on ? 'none' : 'block';
+  outputRawEl.style.display = on ? 'block' : 'none';
+  rawToggle.textContent = on ? 'View rendered' : 'View raw';
+  rawToggle.classList.toggle('active', on);
+}
+
+rawToggle.addEventListener('click', ()=> setRawView(!showingRaw));
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  Object.keys(TOOLS).forEach(key=>{
+    const t = TOOLS[key];
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (key === activeTool ? ' active' : '');
+    btn.innerHTML = `${t.label}<small>${t.hint}</small>`;
+    btn.onclick = () => { activeTool = key; render(); };
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderForm(){
+  const t = TOOLS[activeTool];
+  toolTitle.textContent = t.title;
+  toolDesc.textContent = t.desc;
+  formArea.innerHTML = '';
+
+  // group text-type short fields into a row if there happen to be 2 in sequence at the end
+  t.fields.forEach(f=>{
+    const label = document.createElement('label');
+    label.className = 'field-label';
+    label.textContent = f.label;
+    formArea.appendChild(label);
+
+    let input;
+    if(f.type === 'textarea'){
+      input = document.createElement('textarea');
+    } else {
+      input = document.createElement('input');
+      input.type = 'text';
+    }
+    input.placeholder = f.placeholder || '';
+    input.value = values[activeTool][f.id] || '';
+    input.addEventListener('input', ()=>{ values[activeTool][f.id] = input.value; });
+    formArea.appendChild(input);
+  });
+}
+
+function resetOutputUI(){
+  errorBox.style.display = 'none';
+  errorBox.textContent = '';
+  outputWrap.style.display = 'none';
+  outputEl.innerHTML = '';
+  outputRawEl.textContent = '';
+  lastRawText = '';
+  setRawView(false);
+  skeleton.style.display = 'none';
+  statusText.textContent = '';
+  statusText.classList.remove('err');
+}
+
+function render(){
+  renderTabs();
+  renderForm();
+  resetOutputUI();
+}
+render();
+
+function primaryFieldEmpty(){
+  const t = TOOLS[activeTool];
+  // "content" is the core required field for every tool
+  const core = values[activeTool]['content'];
+  if(activeTool === 'improve'){
+    return !values[activeTool]['question'] || !values[activeTool]['question'].trim() ||
+           !core || !core.trim();
+  }
+  return !core || !core.trim();
+}
+
+function simpleMarkdownToHtml(md){
+  // Minimal, safe-ish markdown renderer for headings/bold/lists/paragraphs.
+  const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let text = escape(md.trim());
+
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = 'ul';
+
+  const closeList = ()=>{ if(inList){ html += `</${listType}>`; inList = false; } };
+
+  lines.forEach(raw=>{
+    const line = raw.trim();
+    if(line === ''){ closeList(); return; }
+
+    let m;
+    if((m = line.match(/^###\s+(.*)/))){ closeList(); html += `<h3>${inline(m[1])}</h3>`; return; }
+    if((m = line.match(/^##\s+(.*)/))){ closeList(); html += `<h2>${inline(m[1])}</h2>`; return; }
+    if((m = line.match(/^#\s+(.*)/))){ closeList(); html += `<h1>${inline(m[1])}</h1>`; return; }
+
+    if((m = line.match(/^[-*]\s+(.*)/))){
+      if(!inList || listType !== 'ul'){ closeList(); html += '<ul>'; inList = true; listType = 'ul'; }
+      html += `<li>${inline(m[1])}</li>`;
+      return;
+    }
+    if((m = line.match(/^\d+[\.\)]\s+(.*)/))){
+      if(!inList || listType !== 'ol'){ closeList(); html += '<ol>'; inList = true; listType = 'ol'; }
+      html += `<li>${inline(m[1])}</li>`;
+      return;
+    }
+
+    closeList();
+    html += `<p>${inline(line)}</p>`;
+  });
+  closeList();
+  return html;
+
+  function inline(s){
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/`(.+?)`/g, '<code>$1</code>');
+    return s;
+  }
+}
+
+async function runTool(){
+  if(primaryFieldEmpty()){
+    errorBox.textContent = "Add some content first — the input field can't be empty.";
+    errorBox.style.display = 'block';
+    outputWrap.style.display = 'none';
+    return;
+  }
+
+  errorBox.style.display = 'none';
+  outputWrap.style.display = 'none';
+  skeleton.style.display = 'block';
+  runBtn.disabled = true;
+  statusText.classList.remove('err');
+  statusText.textContent = 'Generating…';
+
+  const t = TOOLS[activeTool];
+  const prompt = t.buildPrompt(values[activeTool]);
+
+  try{
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error || `Server responded with status ${response.status}`);
+    }
+
+    const text = (data.text || '').trim();
+
+    if(!text){
+      throw new Error("The model returned an empty response.");
+    }
+
+    outputEl.innerHTML = simpleMarkdownToHtml(text);
+    outputRawEl.textContent = text;
+    lastRawText = text;
+    setRawView(false);
+    outputWrap.style.display = 'block';
+    statusText.textContent = 'Done';
+  } catch(err){
+    console.error(err);
+    errorBox.textContent = "Something went wrong generating this — the request may have failed or timed out. Try again in a moment.";
+    errorBox.style.display = 'block';
+    statusText.textContent = 'Failed';
+    statusText.classList.add('err');
+  } finally {
+    skeleton.style.display = 'none';
+    runBtn.disabled = false;
+  }
+}
+
+runBtn.addEventListener('click', runTool);
+</script>
+</body>
+</html>
