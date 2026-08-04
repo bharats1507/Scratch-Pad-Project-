@@ -50,7 +50,7 @@ scratchpad-project/
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) v18 or later (needed for built-in `fetch`)
-- A free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
+- A free Groq API key from [console.groq.com/keys](https://console.groq.com/keys)
 
 ### Steps
 
@@ -71,7 +71,7 @@ scratchpad-project/
    ```
    Open `.env` and add your API key:
    ```
-   GEMINI_API_KEY=your_api_key_here
+   GROQ_API_KEY=your_api_key_here
    PORT=3000
    ```
 
@@ -91,7 +91,7 @@ scratchpad-project/
 
 ## Notes on deployment
 
-If you deploy this (e.g. Render, Railway, Fly.io, a VPS), set `GEMINI_API_KEY` as an environment variable in your hosting platform's dashboard — never commit it to the repo. The `.env` file is already excluded via `.gitignore`.
+If you deploy this (e.g. Render, Railway, Fly.io, a VPS), set `GROQ_API_KEY` as an environment variable in your hosting platform's dashboard — never commit it to the repo. The `.env` file is already excluded via `.gitignore`.
 
 ## Limitations
 
@@ -105,3 +105,4 @@ If you deploy this (e.g. Render, Railway, Fly.io, a VPS), set `GEMINI_API_KEY` a
 - Support for uploading a file instead of pasting text
 - Per-tool history within a session
 - User accounts to save past generations
+
